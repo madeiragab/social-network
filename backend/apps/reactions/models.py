@@ -1,10 +1,24 @@
+"""
+Domain specification:
+
+Entity:
+- Reaction
+
+Rules:
+- Reaction links User and Post
+- One reaction per user per post
+- Database-level uniqueness constraint
+"""
+
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from apps.posts.models import Post
+
+User = get_user_model()
 
 
 class Reaction(models.Model):
-    """Represents a reaction (like, love, etc.) to a post."""
+    """User reaction to a post."""
     REACTION_TYPES = [
         ('like', 'Like'),
         ('love', 'Love'),
@@ -20,8 +34,10 @@ class Reaction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'post')
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'post'], name='unique_reaction_per_user_post'),
+        ]
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.username} {self.reaction_type}d post {self.post.id}"
+        return f"{self.user.username} {self.reaction_type} on post {self.post.id}"

@@ -1,0 +1,14 @@
+.post-content {
+  line-height: 1.6;
+  word-break: break-word;
+  margin: var(--spacing-3) 0;
+}
+
+.post-content a {
+  color: var(--color-blue);
+  text-decoration: none;
+}
+
+.post-content a:hover {
+  text-decoration: underline;
+}

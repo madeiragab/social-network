@@ -1,9 +1,17 @@
 export const authService = {
-  getToken: () => localStorage.getItem('token'),
+  getToken: () => localStorage.getItem('access_token'),
   
-  setToken: (token) => localStorage.setItem('token', token),
+  setToken: (accessToken, refreshToken) => {
+    localStorage.setItem('access_token', accessToken)
+    localStorage.setItem('refresh_token', refreshToken)
+  },
   
-  logout: () => localStorage.removeItem('token'),
+  logout: () => {
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
+  },
   
-  isAuthenticated: () => !!localStorage.getItem('token'),
+  isAuthenticated: () => !!localStorage.getItem('access_token'),
+  
+  getRefreshToken: () => localStorage.getItem('refresh_token'),
 }
