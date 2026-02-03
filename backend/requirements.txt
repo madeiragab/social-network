@@ -1,7 +1,42 @@
+# Dependency specification for Social Network backend
+#
+# Stack:
+# - Python 3.12
+# - Django backend-first architecture
+# - Django REST Framework
+# - JWT authentication
+# - PostgreSQL (production) / SQLite (development)
+# - Explicit domain modeling
+#
+# Rules:
+# - Only production-relevant dependencies
+# - No dev tools unless strictly necessary
+# - No duplicate or overlapping libraries
+#
+# Required capabilities:
+# - REST API
+# - JWT auth
+# - CORS support
+# - Image/media handling
+# - Environment variable management
+
+# Core framework
 Django==4.2.8
+
+# REST API
 djangorestframework==3.14.0
+
+# JWT Authentication
 djangorestframework-simplejwt==5.3.0
+
+# Database
 psycopg2-binary==2.9.9
-python-dotenv==1.0.0
-Pillow==10.1.0
+
+# CORS
 django-cors-headers==4.3.1
+
+# Media handling
+Pillow==10.1.0
+
+# Environment variables
+python-dotenv==1.0.0
