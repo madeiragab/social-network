@@ -1,3 +1,20 @@
+/*
+Implement feed view:
+
+- Fetch posts from backend
+- Display posts in chronological order
+- Each post shows:
+  - author
+  - text content
+  - clickable hyperlinks inside text
+  - list of media (images and/or videos)
+  - reactions count
+
+Do NOT:
+- calculate feed logic
+- sort locally beyond simple ordering
+*/
+
 import { useState, useEffect } from 'react'
 import { postsAPI } from '../services/api'
 import PostCard from './PostCard'
