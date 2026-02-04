@@ -40,3 +40,6 @@ Pillow==10.1.0
 
 # Environment variables
 python-dotenv==1.0.0
+
+# Build tools
+setuptools
