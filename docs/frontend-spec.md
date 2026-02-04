@@ -7,30 +7,11 @@ The frontend is intentionally simple and focused on clarity.
 
 ## Design Rules
 
-- **Primary colors**: Green and white
+- **Primary colors**: Green (#10b981) and white
 - **Layout**: Minimalist
-- **Animations**: None (no heavy animations)
-- **Typography**: Clean
-- **Responsiveness**: Full responsive layout
-
-## Core Features
-
-### Authentication
-- Account creation (sign up)
-- Login
-- Session management
-
-### Feed
-- Display posts in chronological order
-- Infinite scroll or pagination
-
-### Post Creation
-Content types:
-- Text content
-- Hyperlinks inside text
-- Images
-- Videos
-- Multiple media items per post
+- **Animations**: None
+- **Typography**: Clean sans-serif
+- **Responsiveness**: Mobile-first
 
 ## Architecture Principles
 
@@ -40,15 +21,25 @@ Content types:
 - **No business logic**: Frontend contains no business rules or validation logic
 - **Simplicity**: Keep UI and interactions simple and clear
 
+## Core Features
+
+- Authentication (signup/login)
+- Feed (chronological posts)
+- Post creation (text, images, videos)
+- Reactions
+
 ## Technology Stack
 
-(To be defined)
+- React 18
+- Vite
+- Axios
+- JWT authentication
 
 ## API Integration
 
-The frontend consumes these backend endpoints:
-- `/api/users/` - User management and profiles
+Backend endpoints:
+- `/api/auth/` - JWT token management
+- `/api/users/` - User management
 - `/api/posts/` - Posts and media
 - `/api/reactions/` - Post reactions
 
-All API interactions are authenticated using token-based authentication.
