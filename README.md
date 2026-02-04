@@ -41,4 +41,6 @@ Detailed documentation can be found in the `/docs` directory.
 
 ## Project Status
 
-This project is currently in the design and documentation phase.
+Integration testing in progress.
+Core backend architecture, database models, and frontend features are implemented.
+
