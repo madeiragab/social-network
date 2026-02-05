@@ -74,7 +74,7 @@ export default function PostCreation({ onPostCreated }) {
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows="3"
-        className="w-full resize-none border-0 focus:ring-0 text-gray-800 placeholder-gray-400 text-sm sm:text-base p-0 mb-3"
+        className="w-full resize-none border-0 focus:ring-0 text-gray-800 placeholder-gray-400 text-sm sm:text-base p-3 -m-3 mb-3"
       />
       
       {/* Media Preview */}
