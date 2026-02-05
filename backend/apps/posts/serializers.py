@@ -13,10 +13,11 @@ class PostSerializer(serializers.ModelSerializer):
     author_username = serializers.CharField(source='author.username', read_only=True)
     reaction_count = serializers.SerializerMethodField()
     has_reacted = serializers.SerializerMethodField()
+    user_reaction_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'author', 'author_username', 'content', 'media', 'created_at', 'updated_at', 'reaction_count', 'has_reacted']
+        fields = ['id', 'author', 'author_username', 'content', 'media', 'created_at', 'updated_at', 'reaction_count', 'has_reacted', 'user_reaction_id']
         read_only_fields = ['author', 'created_at', 'updated_at']
 
     def get_reaction_count(self, obj):
@@ -27,3 +28,10 @@ class PostSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.reactions.filter(user=request.user).exists()
         return False
+
+    def get_user_reaction_id(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            reaction = obj.reactions.filter(user=request.user).first()
+            return reaction.id if reaction else None
+        return None

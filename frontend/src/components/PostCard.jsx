@@ -13,14 +13,29 @@ export default function PostCard({ post, onPostDeleted }) {
   const displayContent = isExpanded ? post.content : post.content.substring(0, MAX_LENGTH)
 
   const handleReaction = async (reactionType) => {
-    setReactionCount(prev => prev + 1)
-    setHasReacted(true)
-    try {
-      await reactionsAPI.create(post.id, reactionType)
-    } catch (err) {
+    if (hasReacted) {
       setReactionCount(prev => prev - 1)
       setHasReacted(false)
-      console.error('Failed to add reaction')
+      try {
+        const userReaction = post.user_reaction_id
+        if (userReaction) {
+          await reactionsAPI.delete(userReaction)
+        }
+      } catch (err) {
+        setReactionCount(prev => prev + 1)
+        setHasReacted(true)
+        console.error('Failed to remove reaction')
+      }
+    } else {
+      setReactionCount(prev => prev + 1)
+      setHasReacted(true)
+      try {
+        await reactionsAPI.create(post.id, reactionType)
+      } catch (err) {
+        setReactionCount(prev => prev - 1)
+        setHasReacted(false)
+        console.error('Failed to add reaction')
+      }
     }
   }
 
@@ -88,11 +103,10 @@ export default function PostCard({ post, onPostDeleted }) {
         <div className="flex items-center gap-4 pt-3 border-t border-gray-100">
           <button
             onClick={() => handleReaction('like')}
-            disabled={hasReacted}
             className={cn(
               "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
               hasReacted 
-                ? "bg-red-50 text-red-500 cursor-default" 
+                ? "bg-red-50 text-red-500 hover:bg-red-100" 
                 : "hover:bg-gray-100 text-gray-600"
             )}
           >
