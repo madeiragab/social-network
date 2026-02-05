@@ -3,7 +3,6 @@ import { authService } from './services/auth'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import FeedPage from './pages/FeedPage'
-import './styles/App.css'
 
 export default function App() {
   const [page, setPage] = useState('login')
@@ -30,7 +29,7 @@ export default function App() {
 
   if (!isAuthenticated) {
     return (
-      <div className="app">
+      <div className="min-h-screen w-full">
         {page === 'login' ? (
           <LoginPage 
             onLoginSuccess={handleLoginSuccess}
@@ -47,7 +46,7 @@ export default function App() {
   }
 
   return (
-    <div className="app">
+    <div className="min-h-screen w-full">
       <FeedPage onLogout={handleLogout} />
     </div>
   )

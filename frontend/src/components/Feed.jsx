@@ -16,9 +16,9 @@ Do NOT:
 */
 
 import { useState, useEffect } from 'react'
+import { Loader2 } from 'lucide-react'
 import { postsAPI } from '../services/api'
 import PostCard from './PostCard'
-import '../styles/Feed.css'
 
 export default function Feed({ refreshTrigger }) {
   const [posts, setPosts] = useState([])
@@ -42,13 +42,28 @@ export default function Feed({ refreshTrigger }) {
     }
   }
 
-  if (loading) return <div className="feed"><p>Loading posts...</p></div>
-  if (error) return <div className="feed"><p className="error">{error}</p></div>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 text-primary animate-spin" />
+      </div>
+    )
+  }
+  
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-500 text-sm">{error}</p>
+      </div>
+    )
+  }
 
   return (
-    <div className="feed">
+    <div className="space-y-4">
       {posts.length === 0 ? (
-        <p>No posts yet. Be the first to post!</p>
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-sm">No posts yet. Be the first to post!</p>
+        </div>
       ) : (
         posts.map((post) => (
           <PostCard key={post.id} post={post} onPostDeleted={() => fetchPosts()} />
