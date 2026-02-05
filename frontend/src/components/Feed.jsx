@@ -20,14 +20,14 @@ import { postsAPI } from '../services/api'
 import PostCard from './PostCard'
 import '../styles/Feed.css'
 
-export default function Feed() {
+export default function Feed({ refreshTrigger }) {
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
     fetchPosts()
-  }, [])
+  }, [refreshTrigger])
 
   const fetchPosts = async () => {
     try {
