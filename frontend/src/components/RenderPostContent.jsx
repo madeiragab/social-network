@@ -16,12 +16,17 @@ export default function RenderPostContent({ content }) {
   const urls = content.match(URL_REGEX) || []
   
   return (
-    <p className="post-content">
+    <p className="text-gray-800 whitespace-pre-wrap text-justify leading-relaxed">
       {parts.map((part, index) => (
         <React.Fragment key={index}>
           {part}
           {urls[index] && (
-            <a href={urls[index]} target="_blank" rel="noopener noreferrer">
+            <a 
+              href={urls[index]} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:text-primary-dark underline"
+            >
               {urls[index]}
             </a>
           )}
