@@ -5,6 +5,11 @@ import { reactionsAPI } from '../services/api'
 export default function PostCard({ post, onPostDeleted }) {
   const [reactionCount, setReactionCount] = useState(post.reaction_count || 0)
   const [hasReacted, setHasReacted] = useState(post.has_reacted || false)
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  const MAX_LENGTH = 200
+  const shouldTruncate = post.content.length > MAX_LENGTH
+  const displayContent = isExpanded ? post.content : post.content.substring(0, MAX_LENGTH)
 
   const handleReaction = async (reactionType) => {
     setReactionCount(prev => prev + 1)
@@ -26,7 +31,17 @@ export default function PostCard({ post, onPostDeleted }) {
           {new Date(post.created_at).toLocaleDateString()}
         </span>
       </div>
-      <p className="post-content">{post.content}</p>
+      <p className="post-content">{displayContent}
+        {shouldTruncate && !isExpanded && '...'}
+      </p>
+      {shouldTruncate && (
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="btn-read-more"
+        >
+          {isExpanded ? 'Show less' : 'Read more'}
+        </button>
+      )}
       {post.media && post.media.length > 0 && (
         <div className="post-media">
           {post.media.map((item) => (

@@ -26,8 +26,27 @@
 
 .post-content {
   margin-bottom: 12px;
-  line-height: 1.5;
+  line-height: 1.6;
   word-break: break-word;
+  white-space: pre-wrap;
+  text-align: justify;
+}
+
+.btn-read-more {
+  padding: 4px 8px;
+  background: none;
+  border: none;
+  color: #0066cc;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s;
+  margin-bottom: 12px;
+}
+
+.btn-read-more:hover {
+  color: #0052a3;
+  text-decoration: underline;
 }
 
 .post-media {
