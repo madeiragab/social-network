@@ -1,126 +1,53 @@
-import { useState } from 'react'import { useState } from 'react'
+import { useState } from 'react'
+import '../styles/PostCard.css'
+import { reactionsAPI } from '../services/api'
 
+export default function PostCard({ post, onPostDeleted }) {
+  const [reactionCount, setReactionCount] = useState(post.reaction_count || 0)
+  const [hasReacted, setHasReacted] = useState(post.has_reacted || false)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}  )    </div>      </div>        <span className="reaction-count">{reactionCount}</span>        </button>          👍 Like        <button onClick={() => handleReaction('like')} disabled={hasReacted}>      <div className="post-actions">      )}        </div>          ))}            </div>              )}                </video>                  <source src={item.file} />                <video controls>              ) : (                <img src={item.file} alt="Post media" />              {item.media_type === 'image' ? (            <div key={item.id} className="media-item">          {post.media.map((item) => (        <div className="post-media">      {post.media && post.media.length > 0 && (      <p className="post-content">{post.content}</p>      </div>        </span>          {new Date(post.created_at).toLocaleDateString()}        <span className="post-date">        <strong>{post.author_username}</strong>      <div className="post-header">    <div className="post-card">  return (  }    }      console.error('Failed to add reaction')    } catch (err) {      setHasReacted(true)      setReactionCount(reactionCount + 1)      await reactionsAPI.create(post.id, reactionType)    try {  const handleReaction = async (reactionType) => {  const [hasReacted, setHasReacted] = useState(false)  const [reactionCount, setReactionCount] = useState(post.reactions?.length || 0)export default function PostCard({ post, onPostDeleted }) {import '../styles/PostCard.css'import { reactionsAPI, postsAPI } from '../services/api'import { postsAPI } from '../services/api'
-import '../styles/PostForm.css'
-
-export default function PostForm({ onPostCreated }) {
-  const [content, setContent] = useState('')
-  const [media, setMedia] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!content.trim()) return
-
-    setLoading(true)
-    setError('')
-
+  const handleReaction = async (reactionType) => {
+    setReactionCount(prev => prev + 1)
+    setHasReacted(true)
     try {
-      const formData = new FormData()
-      formData.append('content', content)
-      
-      media.forEach((file) => {
-        formData.append('media', file)
-      })
-
-      await postsAPI.create(formData)
-      setContent('')
-      setMedia([])
-      if (onPostCreated) onPostCreated()
+      await reactionsAPI.create(post.id, reactionType)
     } catch (err) {
-      setError('Failed to create post')
-      console.error(err)
-    } finally {
-      setLoading(false)
+      setReactionCount(prev => prev - 1)
+      setHasReacted(false)
+      console.error('Failed to add reaction')
     }
   }
 
-  const handleMediaChange = (e) => {
-    setMedia([...media, ...Array.from(e.target.files)])
-  }
-
   return (
-    <form onSubmit={handleSubmit} className="post-form">
-      <textarea
-        placeholder="What's on your mind?"
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        rows="4"
-      />
-      
-      <div className="form-actions">
-        <input
-          type="file"
-          multiple
-          onChange={handleMediaChange}
-          accept="image/*,video/*"
-          className="file-input"
-        />
-        {error && <p className="error">{error}</p>}
-        <button type="submit" disabled={loading || !content.trim()}>
-          {loading ? 'Posting...' : 'Post'}
-        </button>
+    <div className="post-card">
+      <div className="post-header">
+        <strong>{post.author_username}</strong>
+        <span className="post-date">
+          {new Date(post.created_at).toLocaleDateString()}
+        </span>
       </div>
-
-      {media.length > 0 && (
-        <div className="media-preview">
-          <p>{media.length} file(s) selected</p>
+      <p className="post-content">{post.content}</p>
+      {post.media && post.media.length > 0 && (
+        <div className="post-media">
+          {post.media.map((item) => (
+            <div key={item.id} className="media-item">
+              {item.media_type === 'image' ? (
+                <img src={item.file} alt="Post media" />
+              ) : (
+                <video controls>
+                  <source src={item.file} />
+                </video>
+              )}
+            </div>
+          ))}
         </div>
       )}
-    </form>
+      <div className="post-actions">
+        <button onClick={() => handleReaction('like')} disabled={hasReacted}>
+          👍 Like
+        </button>
+        <span className="reaction-count">{reactionCount}</span>
+      </div>
+    </div>
   )
 }
