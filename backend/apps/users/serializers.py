@@ -3,9 +3,19 @@ from .models import User, Profile, Follow
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    avatar = serializers.SerializerMethodField()
+    avatar_file = serializers.ImageField(write_only=True, required=False, source='avatar')
+
     class Meta:
         model = Profile
-        fields = ['id', 'bio', 'avatar', 'created_at', 'updated_at']
+        fields = ['id', 'bio', 'avatar', 'avatar_file', 'created_at', 'updated_at']
+
+    def get_avatar(self, obj):
+        if obj.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.avatar.url)
+        return None
 
 
 class UserCreateSerializer(serializers.ModelSerializer):

@@ -15,12 +15,15 @@ import { useState } from 'react'
 import { ImagePlus, X, Loader2 } from 'lucide-react'
 import { postsAPI } from '../services/api'
 import { cn } from '../lib/utils'
+import Toast from './Toast'
+import Tooltip from './Tooltip'
 
 export default function PostCreation({ onPostCreated }) {
   const [content, setContent] = useState('')
   const [mediaList, setMediaList] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [toast, setToast] = useState(null)
 
   const handleAddMedia = (e) => {
     const files = Array.from(e.target.files)
@@ -43,10 +46,12 @@ export default function PostCreation({ onPostCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!content.trim()) return
+    if (!content.trim()) {
+      setToast({ message: 'Please write something before posting', type: 'error' })
+      return
+    }
 
     setLoading(true)
-    setError('')
 
     try {
       const formData = new FormData()
@@ -56,33 +61,49 @@ export default function PostCreation({ onPostCreated }) {
         formData.append('media', file)
       })
 
-      await postsAPI.create(formData)
+      const response = await postsAPI.create(formData)
+      
+      // Check if response is an error object instead of expected response
+      if (response.content) {
+        setToast({ message: response.content[0] || 'Failed to create post', type: 'error' })
+        return
+      }
+      
       setContent('')
       setMediaList([])
+      setToast({ message: 'Post created successfully', type: 'success' })
       if (onPostCreated) onPostCreated()
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to create post')
+      const errorMsg = err.response?.data?.detail || err.response?.data?.content?.[0] || 'Failed to create post'
+      setToast({ message: errorMsg, type: 'error' })
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5 mb-4">
-      <textarea
-        placeholder="What's on your mind?"
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        rows="3"
-        className="w-full resize-none border-0 focus:ring-0 text-gray-800 placeholder-gray-400 text-sm sm:text-base p-3 -m-3 mb-3"
-      />
+    <>
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+      )}
       
-      {/* Media Preview */}
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-100 shadow-sm mb-4">
+      <div className="p-4 sm:p-5">
+        <textarea
+          placeholder="What's on your mind?"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          rows="3"
+          className="w-full resize-none border-0 focus:ring-0 focus:outline-none text-gray-800 placeholder-gray-400 text-sm sm:text-base"
+        />
+      </div>
+      
       {mediaList.length > 0 && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4">
-          {mediaList.map((item, index) => (
-            <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
-              {item.type === 'image' ? (
+        <div className="px-4 sm:px-5 pb-4">
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            {mediaList.map((item, index) => (
+              <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+                {item.type === 'image' ? (
                 <img src={item.preview} alt="preview" className="w-full h-full object-cover" />
               ) : (
                 <video src={item.preview} className="w-full h-full object-cover" />
@@ -96,25 +117,26 @@ export default function PostCreation({ onPostCreated }) {
               </button>
             </div>
           ))}
+          </div>
         </div>
       )}
 
-      {/* Actions */}
-      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-        <label 
-          className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors text-sm"
-          title="Supported formats: JPEG, PNG, GIF, WebP, MP4, WebM"
-        >
-          <ImagePlus className="w-5 h-5" />
-          <span className="hidden sm:inline">Add Media</span>
-          <input
-            type="file"
-            multiple
-            onChange={handleAddMedia}
-            accept="image/*,video/*"
-            className="hidden"
-          />
-        </label>
+      <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-t border-gray-100">
+        <Tooltip content="JPEG, PNG, GIF, WebP, MP4, WebM" position="bottom">
+          <label 
+            className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors text-sm"
+          >
+            <ImagePlus className="w-5 h-5" />
+            <span className="hidden sm:inline">Add Media</span>
+            <input
+              type="file"
+              multiple
+              onChange={handleAddMedia}
+              accept="image/*,video/*"
+              className="hidden"
+            />
+          </label>
+        </Tooltip>
         
         <div className="flex items-center gap-3">
           {error && <p className="text-red-500 text-xs">{error}</p>}
@@ -138,5 +160,6 @@ export default function PostCreation({ onPostCreated }) {
         </div>
       </div>
     </form>
+    </>
   )
 }
