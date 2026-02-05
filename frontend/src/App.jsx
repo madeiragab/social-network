@@ -38,7 +38,7 @@ export default function App() {
           />
         ) : (
           <SignupPage 
-            onSignupSuccess={handleLoginSuccess}
+            onSignupSuccess={() => setPage('login')}
             onSwitchPage={() => setPage('login')}
           />
         )}

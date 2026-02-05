@@ -16,7 +16,7 @@ export default function LoginPage({ onLoginSuccess, onSwitchPage }) {
 
     try {
       const response = await authAPI.login(username, password)
-      authService.setToken(response.data.token)
+      authService.setToken(response.data.access, response.data.refresh)
       onLoginSuccess()
     } catch (err) {
       setError(err.response?.data?.detail || 'Login failed')
