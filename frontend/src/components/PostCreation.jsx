@@ -95,7 +95,7 @@ export default function PostCreation({ onPostCreated }) {
       </div>
 
       <div className="form-actions">
-        <label className="file-input-label">
+        <label className="file-input-label" title="Formatos suportados: JPEG, PNG, GIF, WebP, MP4, WebM">
           Add Media
           <input
             type="file"
