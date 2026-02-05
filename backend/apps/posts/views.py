@@ -18,18 +18,14 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         post = serializer.save(author=request.user)
         
-        # Process media files
         media_files = request.FILES.getlist('media')
-        print(f"DEBUG: Received {len(media_files)} media files")  # Debug log
         
         for i, file in enumerate(media_files):
-            print(f"DEBUG: Processing file {i}: {file.name}, type: {file.content_type}")  # Debug log
             if file.content_type.startswith('image'):
                 media_type = 'image'
             elif file.content_type.startswith('video'):
                 media_type = 'video'
             else:
-                print(f"DEBUG: Skipping unsupported type {file.content_type}")  # Debug log
                 continue
             
             media_obj = PostMedia.objects.create(
@@ -38,9 +34,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 media_type=media_type, 
                 order=i
             )
-            print(f"DEBUG: Created PostMedia {media_obj.id}")  # Debug log
         
-        # Refresh serializer data to include media
         post.refresh_from_db()
         serializer = self.get_serializer(post)
         headers = self.get_success_headers(serializer.data)
