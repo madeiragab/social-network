@@ -17,7 +17,6 @@ export default function SignupPage({ onSignupSuccess, onSwitchPage }) {
 
     try {
       const response = await authAPI.signup(username, email, password)
-      authService.setToken(response.data.token)
       onSignupSuccess()
     } catch (err) {
       setError(err.response?.data?.detail || 'Signup failed')
