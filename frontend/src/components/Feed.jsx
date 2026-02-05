@@ -32,11 +32,21 @@ export default function Feed({ refreshTrigger }) {
   const fetchPosts = async () => {
     try {
       setLoading(true)
+      setError('')
       const response = await postsAPI.list()
-      setPosts(response.data.results || response.data)
+      
+      // Check if response is an error object
+      if (response?.detail) {
+        setError(response.detail)
+        setPosts([])
+        return
+      }
+      
+      setPosts(response.data?.results || response.data || [])
     } catch (err) {
-      setError('Failed to load posts')
-      console.error(err)
+      console.error('Failed to load posts:', err)
+      setError('Failed to load posts. Please try again.')
+      setPosts([])
     } finally {
       setLoading(false)
     }
@@ -66,7 +76,7 @@ export default function Feed({ refreshTrigger }) {
         </div>
       ) : (
         posts.map((post) => (
-          <PostCard key={post.id} post={post} onPostDeleted={() => fetchPosts()} />
+          <PostCard key={post.id} post={post} onPostUpdated={() => fetchPosts()} />
         ))
       )}
     </div>

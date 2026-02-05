@@ -1,24 +1,25 @@
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { authAPI } from '../services/api'
+import Toast from '../components/Toast'
 
 export default function SignupPage({ onSignupSuccess, onSwitchPage }) {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [toast, setToast] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError('')
     setLoading(true)
 
     try {
       await authAPI.signup(username, email, password)
-      onSignupSuccess()
+      setToast({ message: 'Account created successfully', type: 'success' })
+      setTimeout(() => onSignupSuccess(), 500)
     } catch (err) {
-      setError(err.response?.data?.detail || 'Signup failed')
+      setToast({ message: err.response?.data?.detail || 'Signup failed', type: 'error' })
     } finally {
       setLoading(false)
     }
@@ -26,6 +27,10 @@ export default function SignupPage({ onSignupSuccess, onSwitchPage }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+      )}
+      
       <div className="w-full max-w-sm">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
           <h1 className="text-2xl font-bold text-center text-primary mb-8">Social Network</h1>
@@ -55,8 +60,6 @@ export default function SignupPage({ onSignupSuccess, onSwitchPage }) {
               required
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm"
             />
-            
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
             
             <button 
               type="submit" 
