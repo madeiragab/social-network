@@ -19,7 +19,8 @@ export default function SignupPage({ onSignupSuccess, onSwitchPage }) {
       setToast({ message: 'Account created successfully', type: 'success' })
       setTimeout(() => onSignupSuccess(), 500)
     } catch (err) {
-      setToast({ message: err.response?.data?.detail || 'Signup failed', type: 'error' })
+      const firstFieldError = Object.values(err || {}).find((value) => Array.isArray(value) && value.length > 0)
+      setToast({ message: err?.detail || firstFieldError?.[0] || 'Signup failed', type: 'error' })
     } finally {
       setLoading(false)
     }

@@ -34,16 +34,29 @@ api.interceptors.response.use(
 const handleError = (error) => {
   // Return a normalized error object
   if (error.response?.data) {
-    return error.response.data
+    return {
+      ...error.response.data,
+      status: error.response.status,
+    }
   }
-  return { detail: error.message || 'An error occurred' }
+  return { detail: error.message || 'An error occurred', status: 0 }
 }
 
 export const authAPI = {
-  signup: (username, email, password) =>
-    api.post('/users/', { username, email, password }).catch(handleError),
-  login: (username, password) =>
-    api.post('/auth/token/', { username, password }).catch(handleError),
+  signup: async (username, email, password) => {
+    try {
+      return await api.post('/users/', { username, email, password })
+    } catch (error) {
+      throw handleError(error)
+    }
+  },
+  login: async (username, password) => {
+    try {
+      return await api.post('/auth/token/', { username, password })
+    } catch (error) {
+      throw handleError(error)
+    }
+  },
 }
 
 export const postsAPI = {
@@ -52,6 +65,8 @@ export const postsAPI = {
   retrieve: (id) => api.get(`/posts/${id}/`).catch(handleError),
   update: (id, data) => api.patch(`/posts/${id}/`, data).catch(handleError),
   delete: (id) => api.delete(`/posts/${id}/`).catch(handleError),
+  listComments: (postId) => api.get(`/posts/${postId}/comments/`).catch(handleError),
+  createComment: (postId, content) => api.post(`/posts/${postId}/comments/`, { content }).catch(handleError),
 }
 
 export const reactionsAPI = {

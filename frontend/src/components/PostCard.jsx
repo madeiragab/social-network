@@ -1,9 +1,32 @@
 import { useState, useRef, useEffect } from 'react'
-import { Heart, MoreHorizontal, Pencil, Trash2, X } from 'lucide-react'
+import { Heart, MoreHorizontal, Pencil, Trash2, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { reactionsAPI, postsAPI } from '../services/api'
 import { cn } from '../lib/utils'
 import ImageViewer from './ImageViewer'
 import Toast from './Toast'
+
+const URL_REGEX = /(https?:\/\/[^\s]+)/g
+
+function linkifyText(text) {
+  return text.split(URL_REGEX).map((part, index) => {
+    if (/^https?:\/\//.test(part)) {
+      return (
+        <a
+          key={`link-${index}`}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:text-primary-dark underline break-all"
+          onClick={(event) => event.stopPropagation()}
+        >
+          {part}
+        </a>
+      )
+    }
+
+    return <span key={`text-${index}`}>{part}</span>
+  })
+}
 
 export default function PostCard({ post, onPostUpdated }) {
   const [reactionCount, setReactionCount] = useState(post.reaction_count || 0)
@@ -16,11 +39,50 @@ export default function PostCard({ post, onPostUpdated }) {
   const [editMediaToRemove, setEditMediaToRemove] = useState([])
   const [viewerImage, setViewerImage] = useState(null)
   const [toast, setToast] = useState(null)
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0)
+  const [comments, setComments] = useState([])
+  const [isLoadingComments, setIsLoadingComments] = useState(false)
+  const [commentCount, setCommentCount] = useState(post.comment_count || 0)
+  const [latestComment, setLatestComment] = useState(post.latest_comment || null)
+  const [newComment, setNewComment] = useState('')
+  const touchStartXRef = useRef(null)
   const menuRef = useRef(null)
 
-  const MAX_LENGTH = 200
+  const MAX_LENGTH = 160
   const shouldTruncate = post.content.length > MAX_LENGTH
   const displayContent = isExpanded ? post.content : post.content.substring(0, MAX_LENGTH)
+
+  useEffect(() => {
+    setReactionCount(post.reaction_count || 0)
+    setHasReacted(post.has_reacted || false)
+    setCommentCount(post.comment_count || 0)
+    setLatestComment(post.latest_comment || null)
+  }, [post])
+
+  useEffect(() => {
+    if (!isExpanded || isEditing) {
+      return
+    }
+
+    const fetchComments = async () => {
+      setIsLoadingComments(true)
+      try {
+        const response = await postsAPI.listComments(post.id)
+        if (response?.detail) {
+          setToast({ message: response.detail, type: 'error' })
+          return
+        }
+        setComments(response.data || [])
+      } catch (err) {
+        const errorMsg = err?.detail || 'Failed to load comments'
+        setToast({ message: errorMsg, type: 'error' })
+      } finally {
+        setIsLoadingComments(false)
+      }
+    }
+
+    fetchComments()
+  }, [isExpanded, isEditing, post.id])
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -126,10 +188,99 @@ export default function PostCard({ post, onPostUpdated }) {
 
   const visibleMedia = post.media?.filter(m => !editMediaToRemove.includes(m.id)) || []
 
+  useEffect(() => {
+    if (currentMediaIndex > visibleMedia.length - 1) {
+      setCurrentMediaIndex(0)
+    }
+  }, [visibleMedia.length, currentMediaIndex])
+
+  const handleToggleExpand = () => {
+    if (!isEditing) {
+      setIsExpanded(prev => !prev)
+    }
+  }
+
+  const goToPreviousMedia = () => {
+    setCurrentMediaIndex((prev) => (prev === 0 ? visibleMedia.length - 1 : prev - 1))
+  }
+
+  const goToNextMedia = () => {
+    setCurrentMediaIndex((prev) => (prev === visibleMedia.length - 1 ? 0 : prev + 1))
+  }
+
+  const handleMediaTouchStart = (event) => {
+    if (visibleMedia.length <= 1) {
+      return
+    }
+    touchStartXRef.current = event.touches[0].clientX
+  }
+
+  const handleMediaTouchEnd = (event) => {
+    if (visibleMedia.length <= 1 || touchStartXRef.current === null) {
+      return
+    }
+
+    const touchEndX = event.changedTouches[0].clientX
+    const swipeDelta = touchEndX - touchStartXRef.current
+    const swipeThreshold = 40
+
+    if (swipeDelta > swipeThreshold) {
+      goToPreviousMedia()
+    } else if (swipeDelta < -swipeThreshold) {
+      goToNextMedia()
+    }
+
+    touchStartXRef.current = null
+  }
+
+  const handleAddComment = () => {
+    const submitComment = async () => {
+      const trimmedComment = newComment.trim()
+      if (!trimmedComment) {
+        return
+      }
+
+      try {
+        const response = await postsAPI.createComment(post.id, trimmedComment)
+        if (response?.detail || response?.content) {
+          setToast({ message: response?.detail || response?.content?.[0] || 'Failed to add comment', type: 'error' })
+          return
+        }
+
+        const createdComment = response.data
+        setComments(prev => [createdComment, ...prev])
+        setLatestComment(createdComment)
+        setCommentCount(prev => prev + 1)
+        setNewComment('')
+        if (onPostUpdated) onPostUpdated()
+      } catch (err) {
+        const errorMsg = err?.detail || err?.content?.[0] || 'Failed to add comment'
+        setToast({ message: errorMsg, type: 'error' })
+      }
+    }
+
+    submitComment()
+  }
+
+  const renderCommentItem = (comment) => (
+    <div key={comment.id} className="p-3 rounded-lg bg-gray-50 border border-gray-100">
+      <p className="text-xs text-gray-500 mb-1">{comment.author_username || 'User'}</p>
+      <p className="text-sm text-gray-800 whitespace-pre-wrap">{comment.content}</p>
+      <p className="text-xs text-gray-500 mt-1">
+        {new Date(comment.created_at).toLocaleString()}
+      </p>
+    </div>
+  )
+
   return (
     <>
-      <article className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-4 sm:p-5">
+      <article
+        className={cn(
+          'bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden transition-all',
+          !isExpanded && 'max-h-[460px]'
+        )}
+      >
+        <div className="p-4 sm:p-5" onClick={handleToggleExpand}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               {post.author_avatar ? (
@@ -150,7 +301,10 @@ export default function PostCard({ post, onPostUpdated }) {
             {post.is_owner && (
               <div className="relative" ref={menuRef}>
                 <button
-                  onClick={() => setShowMenu(!showMenu)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowMenu(!showMenu)
+                  }}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <MoreHorizontal className="w-5 h-5 text-gray-500" />
@@ -158,7 +312,8 @@ export default function PostCard({ post, onPostUpdated }) {
                 {showMenu && (
                   <div className="absolute right-0 mt-1 w-36 bg-white rounded-xl border border-gray-100 shadow-lg py-1 z-10">
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation()
                         setShowMenu(false)
                         setIsEditing(true)
                       }}
@@ -168,7 +323,8 @@ export default function PostCard({ post, onPostUpdated }) {
                       Edit
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation()
                         setShowMenu(false)
                         setShowDeleteDialog(true)
                       }}
@@ -189,81 +345,122 @@ export default function PostCard({ post, onPostUpdated }) {
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 rows="3"
+                onClick={(e) => e.stopPropagation()}
                 className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm resize-none"
               />
             ) : (
               <>
                 <p className="text-gray-800 text-sm sm:text-base leading-relaxed whitespace-pre-wrap text-justify">
-                  {displayContent}
+                  {linkifyText(displayContent)}
                   {shouldTruncate && !isExpanded && '...'}
                 </p>
-                {shouldTruncate && (
+                {(shouldTruncate || !isExpanded) && (
                   <button
-                    onClick={() => setIsExpanded(!isExpanded)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setIsExpanded(!isExpanded)
+                    }}
                     className="text-primary hover:text-primary-dark text-sm font-medium mt-1 transition-colors"
                   >
-                    {isExpanded ? 'Show less' : 'Read more'}
+                    {isExpanded ? 'Show less' : 'Expand post'}
                   </button>
                 )}
               </>
             )}
           </div>
 
-          {post.media && post.media.length > 0 && (
-            <div className={cn(
-              "grid gap-2 mb-3",
-              post.media.length === 1 && "grid-cols-1",
-              post.media.length === 2 && "grid-cols-2",
-              post.media.length >= 3 && "grid-cols-2 sm:grid-cols-3"
-            )}>
-              {post.media.map((item) => (
-                <div 
-                  key={item.id} 
-                  className={cn(
-                    "relative rounded-lg overflow-hidden bg-gray-100",
-                    isEditing && editMediaToRemove.includes(item.id) && "opacity-40"
-                  )}
-                >
-                  {item.media_type === 'image' ? (
-                    <img 
-                      src={item.file} 
-                      alt="" 
-                      className="w-full h-48 sm:h-56 object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                      onClick={() => !isEditing && setViewerImage(item.file)}
-                    />
-                  ) : (
-                    <video controls className="w-full h-48 sm:h-56 object-cover">
-                      <source src={item.file} />
-                    </video>
-                  )}
-                  {isEditing && (
+          {visibleMedia.length > 0 && (
+            <div className="mb-3">
+              <div
+                className="relative w-full rounded-lg overflow-hidden bg-gray-100"
+                style={{ paddingBottom: '100%' }}
+                onTouchStart={handleMediaTouchStart}
+                onTouchEnd={handleMediaTouchEnd}
+              >
+                {visibleMedia[currentMediaIndex]?.media_type === 'image' ? (
+                  <img
+                    src={visibleMedia[currentMediaIndex].file}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                    style={{ top: 0, left: 0 }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (!isEditing) {
+                        setViewerImage(visibleMedia[currentMediaIndex].file)
+                      }
+                    }}
+                  />
+                ) : (
+                  <video controls className="absolute inset-0 w-full h-full object-contain" style={{ top: 0, left: 0 }} onClick={(e) => e.stopPropagation()}>
+                    <source src={visibleMedia[currentMediaIndex].file} />
+                  </video>
+                )}
+
+                {visibleMedia.length > 1 && (
+                  <>
                     <button
-                      onClick={() => toggleMediaRemoval(item.id)}
-                      className={cn(
-                        "absolute top-2 right-2 p-1.5 rounded-full transition-colors",
-                        editMediaToRemove.includes(item.id)
-                          ? "bg-primary text-white"
-                          : "bg-black/50 text-white hover:bg-red-500"
-                      )}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        goToPreviousMedia()
+                      }}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
                     >
-                      <X className="w-4 h-4" />
+                      <ChevronLeft className="w-4 h-4" />
                     </button>
-                  )}
-                </div>
-              ))}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        goToNextMedia()
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+
+                {isEditing && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      toggleMediaRemoval(visibleMedia[currentMediaIndex].id)
+                    }}
+                    className={cn(
+                      "absolute top-2 right-2 p-1.5 rounded-full transition-colors",
+                      editMediaToRemove.includes(visibleMedia[currentMediaIndex].id)
+                        ? "bg-primary text-white"
+                        : "bg-black/50 text-white hover:bg-red-500"
+                    )}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {visibleMedia.length > 1 && (
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  {currentMediaIndex + 1} / {visibleMedia.length}
+                </p>
+              )}
             </div>
           )}
 
           {isEditing ? (
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
               <button
-                onClick={handleCancelEdit}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleCancelEdit()
+                }}
                 className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={handleSaveEdit}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleSaveEdit()
+                }}
                 className="px-4 py-2 text-sm font-semibold bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors"
               >
                 Save
@@ -272,7 +469,10 @@ export default function PostCard({ post, onPostUpdated }) {
           ) : (
             <div className="flex items-center gap-4 pt-3 border-t border-gray-100">
               <button
-                onClick={() => handleReaction('like')}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleReaction('like')
+                }}
                 className={cn(
                   "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
                   hasReacted 
@@ -283,6 +483,45 @@ export default function PostCard({ post, onPostUpdated }) {
                 <Heart className={cn("w-4 h-4", hasReacted && "fill-current")} />
                 <span>{reactionCount}</span>
               </button>
+              <span className="text-sm text-gray-500">{commentCount} comentários</span>
+            </div>
+          )}
+
+          {!isExpanded && latestComment && !isEditing && (
+            <div className="mt-3 pt-3 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
+              <p className="text-xs text-gray-500 mb-2">Último comentário</p>
+              {renderCommentItem(latestComment)}
+            </div>
+          )}
+
+          {isExpanded && !isEditing && (
+            <div className="mt-4 pt-4 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">Comentários</h4>
+              <div className="flex items-start gap-2 mb-3">
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  rows="2"
+                  placeholder="Escreva um comentário..."
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm resize-none"
+                />
+                <button
+                  onClick={handleAddComment}
+                  className="px-4 py-2 text-sm font-semibold bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors"
+                >
+                  Comentar
+                </button>
+              </div>
+
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {isLoadingComments ? (
+                  <p className="text-sm text-gray-500">Carregando comentários...</p>
+                ) : comments.length === 0 ? (
+                  <p className="text-sm text-gray-500">Nenhum comentário ainda.</p>
+                ) : (
+                  comments.map((comment) => renderCommentItem(comment))
+                )}
+              </div>
             </div>
           )}
         </div>
