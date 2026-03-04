@@ -16,11 +16,21 @@ export default function LoginPage({ onLoginSuccess, onSwitchPage }) {
 
     try {
       const response = await authAPI.login(username, password)
+      if (!response?.data?.access || !response?.data?.refresh) {
+        setToast({ message: 'Erro, tente novamente mais tarde', type: 'error' })
+        return
+      }
       authService.setToken(response.data.access, response.data.refresh)
       setToast({ message: 'Login successful', type: 'success' })
       setTimeout(() => onLoginSuccess(), 500)
     } catch (err) {
-      setToast({ message: err.response?.data?.detail || 'Login failed', type: 'error' })
+      const isInvalidCredentials = err?.status === 401 || err?.detail?.toLowerCase?.().includes('credentials')
+      setToast({
+        message: isInvalidCredentials
+          ? 'Usuário ou senha incorretos'
+          : 'Erro, tente novamente mais tarde',
+        type: 'error'
+      })
     } finally {
       setLoading(false)
     }

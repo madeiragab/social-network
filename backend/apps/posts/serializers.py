@@ -1,11 +1,20 @@
 from rest_framework import serializers
-from .models import Post, PostMedia
+from .models import Post, PostMedia, Comment
 
 
 class PostMediaSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostMedia
         fields = ['id', 'media_type', 'file', 'created_at']
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author_username = serializers.CharField(source='author.username', read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'post', 'author', 'author_username', 'content', 'created_at']
+        read_only_fields = ['post', 'author', 'created_at']
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -16,10 +25,12 @@ class PostSerializer(serializers.ModelSerializer):
     has_reacted = serializers.SerializerMethodField()
     user_reaction_id = serializers.SerializerMethodField()
     is_owner = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
+    latest_comment = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'author', 'author_username', 'author_avatar', 'content', 'media', 'created_at', 'updated_at', 'reaction_count', 'has_reacted', 'user_reaction_id', 'is_owner']
+        fields = ['id', 'author', 'author_username', 'author_avatar', 'content', 'media', 'created_at', 'updated_at', 'reaction_count', 'has_reacted', 'user_reaction_id', 'is_owner', 'comment_count', 'latest_comment']
         read_only_fields = ['author', 'created_at', 'updated_at']
 
     def get_author_avatar(self, obj):
@@ -50,3 +61,12 @@ class PostSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.author == request.user
         return False
+
+    def get_comment_count(self, obj):
+        return obj.comments.count()
+
+    def get_latest_comment(self, obj):
+        latest_comment = obj.comments.first()
+        if latest_comment:
+            return CommentSerializer(latest_comment, context=self.context).data
+        return None

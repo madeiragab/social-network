@@ -3,8 +3,9 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
-from .models import Post, PostMedia
-from .serializers import PostSerializer, PostMediaSerializer
+from rest_framework.decorators import action
+from .models import Post, PostMedia, Comment
+from .serializers import PostSerializer, PostMediaSerializer, CommentSerializer
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -93,6 +94,23 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    @action(detail=True, methods=['get', 'post'], url_path='comments')
+    def comments(self, request, pk=None):
+        post = self.get_object()
+
+        if request.method == 'GET':
+            comments_qs = post.comments.select_related('author').all()
+            serializer = CommentSerializer(comments_qs, many=True, context={'request': request})
+            return Response(serializer.data)
+
+        content = request.data.get('content', '').strip()
+        if not content:
+            return Response({'content': ['This field may not be blank.']}, status=status.HTTP_400_BAD_REQUEST)
+
+        comment = Comment.objects.create(post=post, author=request.user, content=content)
+        serializer = CommentSerializer(comment, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class PostMediaViewSet(viewsets.ModelViewSet):
