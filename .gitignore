@@ -17,3 +17,7 @@ __pycache__/
 dist/
 build/
 *.log
+
+# Banco local e uploads
+*.sqlite3
+media/
