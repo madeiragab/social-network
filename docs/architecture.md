@@ -35,19 +35,21 @@ The core domain entities are:
 - Reaction
 - Follow
 
-The full domain model is described in the UML class diagram.
+Plus `Comment`, added after the initial modeling.
 
-See: `/docs/diagrams/class-diagram.png`
+The full domain model is described in the UML class diagram:
+[`diagrams/Class Diagram.png`](diagrams/Class%20Diagram.png)
+
+Database-level constraints (unique follows, no self-follow, unique media
+order, one reaction per user per post) are listed in [api.md](api.md).
 
 ## Main Flows
 
-Two main system flows were modeled:
+Two main system flows were modeled — post creation and feed loading —
+documented in the sequence diagrams:
+[`diagrams/Sequences diagram.png`](diagrams/Sequences%20diagram.png)
 
-- Post creation flow
-- Feed loading flow
+## API
 
-These flows are documented using sequence diagrams.
-
-See:
-- `/docs/diagrams/sequence-create-post.png`
-- `/docs/diagrams/sequence-feed.png`
+The REST surface is documented in [api.md](api.md): authentication,
+endpoints per resource and the rules each one enforces.

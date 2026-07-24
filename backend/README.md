@@ -18,10 +18,19 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+Create an admin account to browse the data at `/admin/`:
+
+```bash
+python manage.py createsuperuser
+```
+
 ## API Structure
 
-- `/api/users/` - User management
-- `/api/posts/` - Posts and media
+- `/api/auth/` - JWT token issuing and refresh
+- `/api/users/` - Users and profiles
+- `/api/posts/` - Posts, media and comments
 - `/api/reactions/` - Post reactions
+
+Full endpoint reference: [docs/api.md](../docs/api.md).
 
 See main [README](../README.md) for architecture details.

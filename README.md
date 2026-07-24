@@ -29,14 +29,42 @@ Detailed documentation can be found in the `/docs` directory.
 
 ## Documentation
 
-- Architecture overview: `/docs/architecture.md`
-- Architectural decisions: `/docs/decisions.md`
-- UML diagrams: `/docs/diagrams`
+| Doc | What's inside |
+|---|---|
+| [docs/architecture.md](docs/architecture.md) | Layers, responsibilities, main flows |
+| [docs/api.md](docs/api.md) | Every endpoint, authentication, and the rules each enforces |
+| [docs/decisions.md](docs/decisions.md) | Architectural decisions and their rationale |
+| [docs/frontend-spec.md](docs/frontend-spec.md) | Frontend specification |
+| [docs/diagrams/](docs/diagrams) | UML class and sequence diagrams |
+
+## Running locally
+
+Backend (Django REST API):
+
+```bash
+cd backend
+pip install -r requirements.txt
+cp .env.example .env
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+Frontend (React + Vite):
+
+```bash
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
+```
 
 ## Technology Stack
 
 - Backend: Django, Django REST Framework
-- Database: PostgreSQL
+- Authentication: JWT (`djangorestframework-simplejwt`)
+- Database: PostgreSQL in production, SQLite for development
+- Frontend: React + Vite + Tailwind CSS
 - Diagrams: UML (Class and Sequence Diagrams)
 
 ## Project Status
