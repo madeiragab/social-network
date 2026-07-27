@@ -1,3 +1,5 @@
+> 🇧🇷 [Português](README.pt-BR.md) · 🇬🇧 **English**
+
 # Social Network
 
 Backend-first social network designed with explicit domain modeling and documented system flows.

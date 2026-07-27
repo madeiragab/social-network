@@ -1,3 +1,5 @@
+> 🇧🇷 [Português](frontend-spec.pt-BR.md) · 🇬🇧 **English**
+
 # Frontend Specification
 
 ## Project Overview

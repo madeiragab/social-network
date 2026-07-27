@@ -1,3 +1,5 @@
+> 🇧🇷 [Português](architecture.pt-BR.md) · 🇬🇧 **English**
+
 # Architecture Overview
 
 This project is a web-based social network focused on backend clarity, domain modeling, and explicit business rules.
