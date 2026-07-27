@@ -1,3 +1,5 @@
+> 🇧🇷 [Português](decisions.pt-BR.md) · 🇬🇧 **English**
+
 # Architectural Decisions
 
 This document describes the main technical and architectural decisions taken during the design of the system.
