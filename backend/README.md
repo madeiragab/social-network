@@ -1,3 +1,5 @@
+> 🇧🇷 [Português](README.pt-BR.md) · 🇬🇧 **English**
+
 # Backend
 
 Django REST API for the social network.

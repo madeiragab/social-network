@@ -1,3 +1,5 @@
+> 🇧🇷 [Português](README.pt-BR.md) · 🇬🇧 **English**
+
 # Frontend
 
 React + Vite frontend for the social network.
