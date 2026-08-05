@@ -27,7 +27,10 @@ Django==4.2.8
 djangorestframework==3.14.0
 
 # JWT Authentication
-djangorestframework-simplejwt==5.3.0
+# 5.3.0 importava `pkg_resources` no __init__. O setuptools removeu esse
+# módulo, então instalar as versões pinadas hoje quebra no import — antes de
+# qualquer teste rodar. 5.5.1 não depende mais dele.
+djangorestframework-simplejwt==5.5.1
 
 # Database
 psycopg2-binary==2.9.9
@@ -40,6 +43,3 @@ Pillow==10.1.0
 
 # Environment variables
 python-dotenv==1.0.0
-
-# Build tools
-setuptools
