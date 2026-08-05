@@ -2,6 +2,8 @@
 
 # Social Network
 
+[![ci](https://github.com/madeiragab/social-network/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/madeiragab/social-network/actions/workflows/ci.yml)
+
 Rede social com backend em primeiro lugar, projetada com modelagem de domínio explícita e fluxos de sistema documentados.
 
 Este projeto foca em clareza arquitetural, aplicação das regras de negócio e um design de backend sustentável.
